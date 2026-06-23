@@ -3,123 +3,109 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>પ્રોફેશનલ ઓપન સોર્સ પ્રોડક્ટ સ્કેનર</title>
+    <title>રાજકોટ પ્રોડક્ટ લોકેટર</title>
+    <link rel="stylesheet" href="https://unpkg.com/leaflet@1.9.4/dist/leaflet.css" />
+    <script src="https://unpkg.com/leaflet@1.9.4/dist/leaflet.js"></script>
     <style>
-        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; color: #333; text-align: center; padding: 30px; }
-        .container { background: white; padding: 30px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 700px; margin: 0 auto; }
-        h1 { color: #2c3e50; margin-bottom: 25px; }
-        .badge-os { background: #16a085; color: white; padding: 4px 10px; border-radius: 5px; font-size: 12px; font-weight: bold; }
-        .upload-section { background: #eef2f7; border: 2px dashed #16a085; padding: 30px; border-radius: 8px; margin-bottom: 20px; cursor: pointer; }
-        .upload-btn { background-color: #16a085; color: white; padding: 10px 20px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
-        .upload-btn:hover { background-color: #1abc9c; }
-        #imagePreview { max-width: 100%; max-height: 250px; margin-top: 15px; display: none; border-radius: 5px; }
-        #loading { display: none; font-size: 18px; color: #666; margin: 20px 0; }
-        .spinner { border: 4px solid #f3f3f3; border-top: 4px solid #16a085; border-radius: 50%; width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 10px auto; }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-        .result-table { width: 100%; border-collapse: collapse; margin-top: 25px; display: none; text-align: left; }
-        .result-table th, .result-table td { padding: 12px; border: 1px solid #ddd; }
-        .result-table th { background-color: #16a085; color: white; }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: #f4f7f6; color: #333; text-align: center; padding: 20px; }
+        .container { background: white; padding: 25px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 800px; margin: 0 auto; }
+        h1 { color: #e74c3c; margin-bottom: 10px; }
+        .search-box { margin: 20px 0; display: flex; justify-content: center; gap: 10px; }
+        .search-input { width: 60%; padding: 12px; border: 2px solid #e74c3c; border-radius: 5px; font-size: 16px; }
+        .search-btn { background-color: #e74c3c; color: white; padding: 12px 25px; border: none; border-radius: 5px; font-size: 16px; cursor: pointer; font-weight: bold; }
+        .search-btn:hover { background-color: #c0392b; }
+        #map { height: 450px; width: 100%; border-radius: 8px; margin-top: 20px; box-shadow: inset 0 0 10px rgba(0,0,0,0.2); }
+        #status { font-weight: bold; color: #7f8c8d; margin-top: 10px; }
     </style>
 </head>
 <body>
 
 <div class="container">
-    <h1>સુપરસ્ટાર પ્રોડક્ટ સ્કેનર <span class="badge-os">૧૦૦% ઓપન સોર્સ</span> 🚀</h1>
-    <p>કોઈ API Key વગર, કોઈપણ ઓબ્જેક્ટ કે પ્રોડક્ટનો ફોટો ઓળખો પળવારમાં!</p>
+    <h1>રાજકોટ પ્રોડક્ટ માર્કેટ લોકેટર 📍</h1>
+    <p>તમારે જે વસ્તુ ખરીદવી હોય તેનું નામ લખો, તે રાજકોટમાં ક્યાં મળશે તે મેપ પર જુઓ.</p>
 
-    <div class="upload-section" onclick="document.getElementById('productImage').click();">
-        <p style="margin-top:0;">પ્રોડક્ટ અથવા હાર્ડવેરનો ફોટો અહીં અપલોડ કરો</p>
-        <input type="file" id="productImage" accept="image/*" style="display:none;" onchange="processProductImage(this)">
-        <button class="upload-btn">ફોટો સિલેક્ટ કરો</button>
-        <br>
-        <img id="imagePreview" alt="Product Preview">
+    <div class="search-box">
+        <input type="text" id="productName" class="search-input" placeholder="પ્રોડક્ટનું નામ લખો (e.g., Computer, Mobile, Clothes)..." onkeypress="if(event.key === 'Enter') searchProduct()">
+        <button class="search-btn" onclick="searchProduct()">શોધો</button>
     </div>
 
-    <div id="loading">
-        <div class="spinner"></div>
-        <span id="statusText">ઓપન-સોર્સ વિઝન મોડલ (Hugging Face) દ્વારા ફોટો સ્કેન થઈ રહ્યો છે...</span>
-    </div>
-
-    <table class="result-table" id="resultTable">
-        <thead>
-            <tr>
-                <th style="width: 30%;">વિગત (Attribute)</th>
-                <th>મેળવેલી માહિતી (Information)</th>
-            </tr>
-        </thead>
-        <tbody id="resultBody"></tbody>
-    </table>
+    <div id="status">નકશો લોડ થઈ રહ્યો છે...</div>
+    <div id="map"></div>
 </div>
 
 <script>
-    function processProductImage(input) {
-        const file = input.files[0];
-        if (!file) return;
+    // રાજકોટના સેન્ટર લોકેશન (Latitude, Longitude) પર મેપ સેટ કરો
+    const rajkotLat = 22.3039;
+    const rajkotLng = 70.8022;
+    
+    // મેપ ઇનિશિયલાઈઝ કરો
+    const map = L.map('map').setView([rajkotLat, rajkotLng], 13);
 
-        const reader = new FileReader();
-        reader.onload = function(e) {
-            const preview = document.getElementById('imagePreview');
-            preview.src = e.target.result;
-            preview.style.display = 'inline-block';
-            
-            // ફાઈલને સીધી બ્લોબ (Blob) તરીકે ઓપન-સોર્સ API પર મોકલો
-            sendToHuggingFace(file);
+    // ઓપન સોર્સ મેપ ટાઇલ્સ ઉમેરો
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '© OpenStreetMap contributors'
+    }).addTo(map);
+
+    document.getElementById('status').innerText = "પ્રોડક્ટ શોધો એટલે દુકાનો મેપ પર દેખાશે.";
+
+    let markersLayer = L.layerGroup().addTo(map);
+
+    async function searchProduct() {
+        const product = document.getElementById('productName').value.trim();
+        if (!product) {
+            alert("કૃપા કરીને પ્રોડક્ટનું નામ લખો.");
+            return;
         }
-        reader.readAsDataURL(file);
-    }
 
-    async function sendToHuggingFace(fileBlob) {
-        const loading = document.getElementById('loading');
-        const table = document.getElementById('resultTable');
-        const tbody = document.getElementById('resultBody');
+        const statusDiv = document.getElementById('status');
+        statusDiv.innerText = `રાજકોટમાં '${product}' ની દુકાનો શોધી રહ્યા છીએ...`;
+        markersLayer.clearLayers(); // જૂના માર્કર્સ હટાવો
 
-        loading.style.display = 'block';
-        table.style.display = 'none';
-        tbody.innerHTML = '';
+        // Overpass API - ઓપન સોર્સ લાઈવ ડેટા સર્ચ એન્જિન (માત્ર રાજકોટના એરિયા માટે)
+        const boundingBox = "22.22,70.72,22.36,70.88"; // Rajkot City Coordinates
+        const query = `[out:json][timeout:25];
+            (
+              node["shop"~"${product}",i](${boundingBox});
+              way["shop"~"${product}",i](${boundingBox});
+              node["name"~"${product}",i](${boundingBox});
+              way["name"~"${product}",i](${boundingBox});
+            );
+            out center;`;
 
-        // Hugging Face નું ફ્રી પબ્લિક ઇન્ફરન્સ યુઆરએલ (Google ViT મોડલ)
-        const MODEL_URL = "https://api-inference.huggingface.co/models/google/vit-base-patch16-224";
+        const url = "https://overpass-api.de/api/interpreter?data=" + encodeURIComponent(query);
 
         try {
-            const response = await fetch(MODEL_URL, {
-                method: "POST",
-                body: fileBlob
-            });
+            const response = await fetch(url);
+            const data = await response.json();
 
-            if (!response.ok) {
-                throw new Error("સર્વર પ્રતિસાદ આપવામાં નિષ્ફળ રહ્યું.");
-            }
-
-            const output = await response.json();
-            loading.style.display = 'none';
-
-            if (!output || output.length === 0) {
-                alert("વસ્તુ ઓળખી શકાઈ નથી, કૃપા કરીને બીજો ફોટો ટ્રાય કરો.");
+            if (!data.elements || data.elements.length === 0) {
+                statusDiv.innerText = `રાજકોટમાં '${product}' માટે કોઈ ચોક્કસ લોકેશન મળ્યું નથી. બીજો શબ્દ ટ્રાય કરો (જેમ કે: computer, mobile, electronics, mall).`;
                 return;
             }
 
-            // રિઝલ્ટ ટેબલ તૈયાર કરો
-            let rowsHtml = '';
-            output.forEach((item, index) => {
-                const confidence = Math.round(item.score * 100);
-                if (index === 0) {
-                    rowsHtml += `<tr><td><strong>ઓળખાયેલી પ્રોડક્ટ (Top Match)</strong></td><td><span style="text-transform: capitalize; font-weight: bold; color: #16a085; font-size: 18px;">${item.label}</span></td></tr>`;
-                    rowsHtml += `<tr><td><strong>ચોકસાઈ (Confidence)</strong></td><td><b>${confidence}%</b></td></tr>`;
-                } else if (index < 3) {
-                    rowsHtml += `<tr><td>અન્ય શક્યતા (Option ${index})</td><td style="text-transform: capitalize;">${item.label} (${confidence}%)</td></tr>`;
+            let count = 0;
+            data.elements.forEach(element => {
+                const lat = element.lat || (element.center && element.center.lat);
+                const lon = element.lon || (element.center && element.center.lon);
+                const name = element.tags.name || product;
+                const shopType = element.tags.shop || "દુકાન";
+
+                if (lat && lon) {
+                    // નકશા પર લાલ કે વાદળી ટપકું/માર્કર મૂકો
+                    L.marker([lat, lon])
+                        .addTo(markersLayer)
+                        .bindPopup(`<b>${name}</b><br>કેટેગરી: ${shopType}<br>રાજકોટ, ગુજરાત`)
+                        .openPopup();
+                    count++;
                 }
             });
 
-            rowsHtml += `<tr><td><strong>મોડલ સોર્સ</strong></td><td>Google ViT (Open Source via Hugging Face)</td></tr>`;
-            rowsHtml += `<tr><td><strong>લાઇસન્સ અને કી</strong></td><td>તદ્દન મફત / કોઈ API Key ની જરૂર નથી</td></tr>`;
-
-            tbody.innerHTML = rowsHtml;
-            table.style.display = 'table';
+            statusDiv.innerText = `રાજકોટમાં '${product}' માટે ${count} લોકેશન મળ્યા!`;
+            map.setView([rajkotLat, rajkotLng], 13); // નકશો રાજકોટ પર રીસેટ કરો
 
         } catch (error) {
             console.error(error);
-            alert("મોડલ હજુ લોડ થઈ રહ્યું છે અથવા કોઈ કનેક્શન પ્રોબ્લેમ છે. કૃપા કરીને ૫ સેકન્ડ પછી ફરી ફોટો અપલોડ કરો.");
-            loading.style.display = 'none';
+            statusDiv.innerText = "શોધવામાં કોઈ સમસ્યા આવી, કૃપા કરીને ફરી ટ્રાય કરો.";
         }
     }
 </script>

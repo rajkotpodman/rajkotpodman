@@ -1,19 +1,22 @@
-# ગિટલેબ પેજીસ (GitLab Pages) માટેનું કન્ફિગરેશન
-pages:
-  # આ સ્ટેજ નક્કી કરે છે કે આ ડિપ્લોયમેન્ટ (Deployment) પ્રોસેસ છે
-  stage: deploy
-
-  # આ સ્ક્રિપ્ટ તમારી ફાઇલોને ગિટલેબના સર્વર પર સેટ કરશે
-  script:
-    - mkdir .public
-    - cp -r * .public/
-    - mv .public public
-
-  # આ આર્ટિફેક્ટ્સ (Artifacts) ગિટલેબને જણાવે છે કે કયું ફોલ્ડર પબ્લિક કરવાનું છે
-  artifacts:
-    paths:
-      - public
-
-  # આ નિયમ નક્કી કરે છે કે જ્યારે તમે 'main' બ્રાન્ચમાં કોડ પુશ કરશો ત્યારે જ વેબસાઈટ લાઈવ થશે
-  only:
-    - main
+<!DOCTYPE html>
+<html lang="gu">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>રાજકોટ પોડમેન પ્રોજેક્ટ</title>
+    <style>
+        body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f4f7f6; color: #333; text-align: center; padding: 50px; }
+        .container { background: white; padding: 40px; border-radius: 10px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); max-width: 600px; margin: 0 auto; }
+        h1 { color: #4A90E2; }
+        p { font-size: 18px; line-height: 1.6; }
+        .badge { background-color: #2ecc71; color: white; padding: 5px 15px; border-radius: 20px; font-size: 14px; display: inline-block; margin-top: 10px; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>રાજકોટ પોડમેન પ્રોજેક્ટમાં આપનું સ્વાગત છે! 🚀</h1>
+        <p>આ વેબસાઇટ હવે **GitHub Pages** પર સફળતાપૂર્વક ૧૦૦% મફત અને લાઈવ હોસ્ટ થઈ ચૂકી છે.</p>
+        <div class="badge">Status: Live & Running</div>
+    </div>
+</body>
+</html>
